@@ -1,3 +1,5 @@
+import re
+import os
 import sys
 import json
 from pprint import pprint
@@ -7,6 +9,22 @@ import optparse
 import shodan
 import hashlib
 import base64
+import platform as pf
+
+mypf = pf.platform()
+dir_path = os.path.dirname(os.path.abspath(__file__))
+seperator = ""
+if re.search(r'^windows', mypf, re.I):
+    seperator = "\\"
+elif re.search(r'^(linux|Darwin)', mypf, re.I):
+    seperator = "/"
+else:
+    print("Not supported platform")
+    print("your os is: {}".format(mypf))
+    sys.exit(0)
+
+lib_path = seperator.join(dir_path.split(seperator)[:-3])
+sys.path.append(lib_path)
 
 class EasyIntell:
     def __init__(self):
