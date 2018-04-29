@@ -1,4 +1,7 @@
 import re
+import os
+import sys
+import platform as pf
 import logging
 import pprint
 import math
@@ -7,6 +10,21 @@ from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 
 import easyntelligence
+
+mypf = pf.platform()
+dir_path = os.path.dirname(os.path.abspath(__file__))
+seperator = ""
+if re.search(r'^windows', mypf, re.I):
+    seperator = "\\"
+elif re.search(r'^(linux|Darwin)', mypf, re.I):
+    seperator = "/"
+else:
+    print("Not supported platform")
+    print("your os is: {}".format(mypf))
+    sys.exit(0)
+
+lib_path = seperator.join(dir_path.split(seperator)[:-3])
+sys.path.append(lib_path)
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -86,15 +104,7 @@ def asks(bot, update, args):
 
 
 def main():
-    # get token
-    '''try:
-        ei.teletoken
-        with open('teletoken', 'r') as fr:
-            teletoken = fr.read()
-    except:
-        print('you need to add telegram token in "teletoken"')'''
-
-    updater = Updater(token=ei.teletoken)
+    updater = Updater(token=ei.teletoken.strip())
     dispatcher = updater.dispatcher
 
     # command for start
