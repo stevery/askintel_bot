@@ -29,7 +29,7 @@ sys.path.append(lib_path)
 class EasyIntell:
     def __init__(self):
         try:
-            json_data=open("api.json").read()
+            json_data=open("{}{}api.json".format(dir_path,seperator)).read()
         except:
             print("If you run easyintell You need set api.json first")
             sys.exit(0)
