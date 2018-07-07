@@ -5,11 +5,14 @@ import platform as pf
 import logging
 import pprint
 import math
+from time import sleep
+from datetime import datetime
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 
 import easyntelligence
+import pnmap
 
 mypf = pf.platform()
 dir_path = os.path.dirname(os.path.abspath(__file__))
@@ -40,6 +43,7 @@ def help(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text='''/start, start command describes this bot
 /ask (ip|domain|hash), ask command fetches cti from vt, xfe, shodan, and etc
+/scan ip (port|port-port)
 /help, help''')
 
 def echo(bot, update):
@@ -72,6 +76,26 @@ def message_cleaner(bot, update, args):
     except Exception as e:
         bot.send_message(chat_id=update.message.chat_id, text="[Error] {}".format(e))
         pass
+
+def scan(bot, update, args):
+    if len(args) != 2:
+        bot.send_message(chat_id=update.message.chat_id, text="Wong input")
+    else:
+        ip = args[0].strip()
+        port = args[1].strip()
+        start_time = datetime.now()
+        result = pnmap.simple_scan(ip,port)
+        finish_time = datetime.now()
+        bot.send_message(chat_id=update.message.chat_id, text="scan will takes over 2 min")
+        if result == False:
+            bot.send_message(chat_id=update.message.chat_id, text="ip or port is invalid")
+        else:
+            sleep(120)
+            bot.send_message(chat_id=update.message.chat_id, text="Scan start time: {:%Y-%m-%d %H:%M:%S}".format(start_time))
+            bot.send_message(chat_id=update.message.chat_id, text="Scan finish time: {:%Y-%m-%d %H:%M:%S}".format(finish_time))
+            bot.send_message(chat_id=update.message.chat_id, text=result)
+        print(result)
+        
 
 def asks(bot, update, args):
     args = args[0].strip()
@@ -130,6 +154,10 @@ def main():
     # command for ask
     ask_handler = CommandHandler('ask', asks, pass_args=True)
     dispatcher.add_handler(ask_handler)
+
+    # command for network scan
+    scan_handler = CommandHandler('scan', scan, pass_args=True)
+    dispatcher.add_handler(scan_handler)
 
     # start bot
     updater.start_polling()
