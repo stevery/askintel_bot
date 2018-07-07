@@ -36,6 +36,12 @@ def start(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="I'm a bot for asking security intelligence, please ask to me!")
 
 
+def help(bot, update):
+    bot.send_message(chat_id=update.message.chat_id,
+                     text='''/start, start command describes this bot
+/ask (ip|domain|hash), ask command fetches cti from vt, xfe, shodan, and etc
+/help, help''')
+
 def echo(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
 
@@ -57,8 +63,10 @@ def message_cleaner(bot, update, args):
             if len(messages) < MAXLEN:
                 bot.send_message(chat_id=update.message.chat_id, text=messages)
             else:
-                for i in range(math.ceil(len(messages)%MAXLEN)):
-                    bot.send_message(chat_id=update.message.chat_id, text=messages[i*MAXLEN:i*MAXLEN+MAXLEN])
+                bot.send_message(chat_id=update.message.chat_id, text=messages)
+                bot.send_message(chat_id=update.message.chat_id, text="The message is too long (over {} bytes), it is snipped ".format(MAXLEN))
+                #for i in range(math.ceil(len(messages)%MAXLEN)):
+                #    bot.send_message(chat_id=update.message.chat_id, text=messages[i*MAXLEN:i*MAXLEN+MAXLEN])
         else:
             bot.send_message(chat_id=update.message.chat_id, text='None')
     except Exception as e:
@@ -110,6 +118,10 @@ def main():
     # command for start
     start_handler = CommandHandler('start', start)
     dispatcher.add_handler(start_handler)
+
+    # command for help
+    help_handler = CommandHandler('help', help)
+    dispatcher.add_handler(help_handler)
 
     # command for shell
     echo_handler = MessageHandler(Filters.text, echo)
