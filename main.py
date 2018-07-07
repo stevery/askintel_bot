@@ -90,7 +90,6 @@ def scan(bot, update, args):
         if result == False:
             bot.send_message(chat_id=update.message.chat_id, text="ip or port is invalid")
         else:
-            sleep(120)
             bot.send_message(chat_id=update.message.chat_id, text="Scan start time: {:%Y-%m-%d %H:%M:%S}".format(start_time))
             bot.send_message(chat_id=update.message.chat_id, text="Scan finish time: {:%Y-%m-%d %H:%M:%S}".format(finish_time))
             bot.send_message(chat_id=update.message.chat_id, text=result)
