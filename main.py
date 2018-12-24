@@ -32,7 +32,7 @@ sys.path.append(lib_path)
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 ei = easyntelligence.EasyIntell()
-MAXLEN = 4096
+MAXLEN = 2048
 
 
 def start(bot, update):
@@ -62,13 +62,17 @@ def echo(bot, update):
 def message_cleaner(bot, update, args):
     try:
         if args is not None:
-            messages = pprint.pformat(args, indent=4)
             # The maximum message length of telegram is 4096 bytes
+            messages = pprint.pformat(args, indent=4)
             if len(messages) < MAXLEN:
+                messages = pprint.pformat(args, indent=4)
                 bot.send_message(chat_id=update.message.chat_id, text=messages)
             else:
-                bot.send_message(chat_id=update.message.chat_id, text=messages)
-                bot.send_message(chat_id=update.message.chat_id, text="The message is too long (over {} bytes), it is snipped ".format(MAXLEN))
+                for arg in args:
+                    message = pprint.pformat(args[arg], indent=4)
+                    bot.send_message(chat_id=update.message.chat_id, text="- {}: ".format(arg))
+                    bot.send_message(chat_id=update.message.chat_id, text=message)
+                    # bot.send_message(chat_id=update.message.chat_id, text="The message is too long (over {} bytes), it is splitted ".format(MAXLEN))
                 #for i in range(math.ceil(len(messages)%MAXLEN)):
                 #    bot.send_message(chat_id=update.message.chat_id, text=messages[i*MAXLEN:i*MAXLEN+MAXLEN])
         else:
@@ -121,12 +125,15 @@ def asks(bot, update, args):
         ei.ask_hash(args, itype='hash')
         bot.send_message(chat_id=update.message.chat_id, text='You asked hash value for: {}'.format(args))
         #bot.send_message(chat_id=update.message.chat_id, text="https://www.virustotal.com/#/file/{}".format(args))
+        message_cleaner(bot, update, "Virustotal Result")
         message_cleaner(bot, update, ei.result['virustotal'])
+        message_cleaner(bot, update, "XFE Result")
         message_cleaner(bot, update, ei.result['xfe'])
 
     elif domain_search.search(args):
         ei.ask_domain(args, itype='domain')
         bot.send_message(chat_id=update.message.chat_id, text='You asked domain value for: {}'.format(args))
+        message_cleaner(bot, update, "Virustotal Result")
         message_cleaner(bot, update, ei.result['virustotal'])
         
     else:

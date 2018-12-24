@@ -61,10 +61,42 @@ class EasyIntell:
         return secure_random.choice(self.apis["virustotal"]["key"])
 
 
+    def vt_parser(self, vt):
+        tmp = {}
+        # for hash parse
+        hash_filters = ["md5","sha1","sha256","positives","total","scan_date","permalink"]
+        av_filters = ["ALYac","AhnLab-V3","Kaspersky","MAX","Malwarebytes","Microsoft","Symantec","ViRobot"]
+
+        # for domain parse
+        domain_filters = ["detected_communicating_samples", "detected_downloaded_samples", "detected_referrer_samples", 
+                          "detected_urls", "resolutions"]
+        # positive: malware ample is in vt
+        if vt["response_code"] == 1 and 'md5' in vt:
+            if 'md5' in vt:
+                for key in hash_filters:
+                    tmp[key] = vt[key]
+                for key in av_filters:
+                    tmp[key] = vt["scans"][key]
+
+        # positive: domain in vt
+        elif vt["response_code"] == 1 and 'whois' in vt:
+            tmp = vt
+            for key in domain_filters:
+                if key in tmp and len(tmp[key]) > 3:
+                    tmp[key] = tmp[key][0:3]
+        # negative: sample is not in vt
+        else:
+            print("Sample is not in vt")
+            tmp = vt
+        print(len(str(tmp)))
+        return tmp
+
+
+
     def vt_get_report(self, query, type):
         try:
             print('Virustotal query start')
-            self.vt_ip_result = ""
+            vt_result = ""
             if type == 'ip':
                 vt_sub = "/vtapi/v2/ip-address/report"
                 payloads = {"ip": query, "apikey": self.get_vt_key()}
@@ -83,8 +115,12 @@ class EasyIntell:
             r = requests.get(vt_url, params=payloads)
             print(r.url)
             pprint(json.loads(r.text))
-            self.vt_ip_result = json.loads(r.text)
-            self.result["virustotal"] = self.vt_ip_result
+            vt_result = json.loads(r.text)
+            # self.vt_parser(vt_result)
+            # self.result["virustotal"] = vt_result
+            self.result["virustotal"] = self.vt_parser(vt_result)
+
+
         except Exception as e:
             print("Error: {}".format(e))
             self.result["virustotal"] = None
