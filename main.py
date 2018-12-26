@@ -66,11 +66,14 @@ def message_cleaner(bot, update, args):
             for arg in args:
                 message = pprint.pformat(args[arg], indent=4)
                 bot.send_message(chat_id=update.message.chat_id, text="- {}: ".format(arg))
-                if type(args[arg]) is list or type(args[arg]) is dict:
-                    for i in args[arg][0:MAXLEN]:
+                if type(args[arg]) is list:
+                    for i in args[arg][:MAXLEN]:
                         bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(i, indent=4))
+                #elif type(args[arg]) is dict:
+                #    for i in sorted(args[arg].items())[:MAXLEN]:
+                #        bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(i, indent=4))
                 else:
-                    bot.send_message(chat_id=update.message.chat_id, text=message)
+                    bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(args[arg], indent=4))
         elif args is not None and type(args) is str:
             bot.send_message(chat_id=update.message.chat_id, text=args)
         else:
@@ -138,6 +141,7 @@ def asks(bot, update, args):
         bot.send_message(chat_id=update.message.chat_id, text='You asked url value for: {}'.format(args))
         message_cleaner(bot, update, "Virustotal URL Result")
         message_cleaner(bot, update, ei.result['virustotal'])
+        message_cleaner(bot, update, "XFE URL Result")
         message_cleaner(bot, update, ei.result['xfe'])
         
     else:

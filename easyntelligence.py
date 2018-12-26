@@ -81,11 +81,13 @@ class EasyIntell:
                 for key in hash_filters:
                     tmp[key] = vt[key]
                 for key in av_filters:
-                    tmp[key] = vt["scans"][key]
+                    if key in vt["scans"]:
+                        tmp[key] = vt["scans"][key]
+                    else:
+                        tmp[key] = {"detected":"None"}
         else:
             print("Sample is not in vt")
             tmp = vt
-        print(len(str(tmp)))
         return tmp
 
 
