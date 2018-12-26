@@ -32,7 +32,7 @@ sys.path.append(lib_path)
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 ei = easyntelligence.EasyIntell()
-MAXLEN = 2048
+MAXLEN = 10
 
 
 def start(bot, update):
@@ -61,29 +61,28 @@ def echo(bot, update):
 
 def message_cleaner(bot, update, args):
     try:
-        if args is not None:
-            # The maximum message length of telegram is 4096 bytes
+        if args is not None and type(args) is dict:
             messages = pprint.pformat(args, indent=4)
-            if len(messages) < MAXLEN:
-                messages = pprint.pformat(args, indent=4)
-                bot.send_message(chat_id=update.message.chat_id, text=messages)
-            else:
-                for arg in args:
-                    message = pprint.pformat(args[arg], indent=4)
-                    bot.send_message(chat_id=update.message.chat_id, text="- {}: ".format(arg))
+            for arg in args:
+                message = pprint.pformat(args[arg], indent=4)
+                bot.send_message(chat_id=update.message.chat_id, text="- {}: ".format(arg))
+                if type(args[arg]) is list or type(args[arg]) is dict:
+                    for i in args[arg][0:MAXLEN]:
+                        bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(i, indent=4))
+                else:
                     bot.send_message(chat_id=update.message.chat_id, text=message)
-                    # bot.send_message(chat_id=update.message.chat_id, text="The message is too long (over {} bytes), it is splitted ".format(MAXLEN))
-                #for i in range(math.ceil(len(messages)%MAXLEN)):
-                #    bot.send_message(chat_id=update.message.chat_id, text=messages[i*MAXLEN:i*MAXLEN+MAXLEN])
+        elif args is not None and type(args) is str:
+            bot.send_message(chat_id=update.message.chat_id, text=args)
         else:
-            bot.send_message(chat_id=update.message.chat_id, text='None')
+            bot.send_message(chat_id=update.message.chat_id, text='Return value is none')
+
     except Exception as e:
         bot.send_message(chat_id=update.message.chat_id, text="[Error] {}".format(e))
         pass
 
 def scan(bot, update, args):
     if len(args) != 2:
-        bot.send_message(chat_id=update.message.chat_id, text="Wong input")
+        bot.send_message(chat_id=update.message.chat_id, text="Wrong input")
     else:
         ip = args[0].strip()
         port = args[1].strip()
@@ -124,7 +123,6 @@ def asks(bot, update, args):
     elif md5_search.search(args) or sha1_search.search(args) or sha256_search.search(args):
         ei.ask_hash(args, itype='hash')
         bot.send_message(chat_id=update.message.chat_id, text='You asked hash value for: {}'.format(args))
-        #bot.send_message(chat_id=update.message.chat_id, text="https://www.virustotal.com/#/file/{}".format(args))
         message_cleaner(bot, update, "Virustotal Result")
         message_cleaner(bot, update, ei.result['virustotal'])
         message_cleaner(bot, update, "XFE Result")
@@ -133,8 +131,14 @@ def asks(bot, update, args):
     elif domain_search.search(args):
         ei.ask_domain(args, itype='domain')
         bot.send_message(chat_id=update.message.chat_id, text='You asked domain value for: {}'.format(args))
-        message_cleaner(bot, update, "Virustotal Result")
+        message_cleaner(bot, update, "Virustotal Domain Result")
         message_cleaner(bot, update, ei.result['virustotal'])
+        
+        ei.ask_url(args, itype='url')
+        bot.send_message(chat_id=update.message.chat_id, text='You asked url value for: {}'.format(args))
+        message_cleaner(bot, update, "Virustotal URL Result")
+        message_cleaner(bot, update, ei.result['virustotal'])
+        message_cleaner(bot, update, ei.result['xfe'])
         
     else:
         result = "You asked wrong queries. {}".format(args)

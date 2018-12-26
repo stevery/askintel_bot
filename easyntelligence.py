@@ -56,6 +56,11 @@ class EasyIntell:
         self.xfe_get_report(query, itype)
 
 
+    def ask_url(self, query, itype, option=False):
+        self.vt_get_report(query, itype)
+        self.xfe_get_report(query, itype)
+
+
     def get_vt_key(self):
         secure_random = random.SystemRandom()
         return secure_random.choice(self.apis["virustotal"]["key"])
@@ -77,14 +82,6 @@ class EasyIntell:
                     tmp[key] = vt[key]
                 for key in av_filters:
                     tmp[key] = vt["scans"][key]
-
-        # positive: domain in vt
-        elif vt["response_code"] == 1 and 'whois' in vt:
-            tmp = vt
-            for key in domain_filters:
-                if key in tmp and len(tmp[key]) > 3:
-                    tmp[key] = tmp[key][0:3]
-        # negative: sample is not in vt
         else:
             print("Sample is not in vt")
             tmp = vt
@@ -177,6 +174,8 @@ class EasyIntell:
                 apiurl = url + "/ipr/malware/"
             elif itype == 'hash':
                 apiurl = url + "/malware/"
+            elif itype == 'domain' or itype == 'url':
+                apiurl = url + "/url/malware/"
             
             self.result["xfe"] = self.send_request(apiurl, query, headers)
             
