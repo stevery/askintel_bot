@@ -61,7 +61,11 @@ def echo(bot, update):
 
 def message_cleaner(bot, update, args):
     try:
-        if args is not None and type(args) is dict:
+        # for ip quality score
+        if "request_id" in args:
+            messages = pprint.pformat(args, indent=4)
+            bot.send_message(chat_id=update.message.chat_id, text=messages)
+        elif args is not None and type(args) is dict:
             messages = pprint.pformat(args, indent=4)
             for arg in args:
                 message = pprint.pformat(args[arg], indent=4)
@@ -121,7 +125,10 @@ def asks(bot, update, args):
 
         bot.send_message(chat_id=update.message.chat_id, text='https://exchange.xforce.ibmcloud.com/ip/{}'.format(args))
         message_cleaner(bot, update, ei.result['xfe'])
-        
+
+        bot.send_message(chat_id=update.message.chat_id, text='https://www.ipqualityscore.com/free-ip-lookup-proxy-vpn-test/lookup/{}'.format(args))
+        message_cleaner(bot, update, ei.result['ipqs'])
+
 
     elif md5_search.search(args) or sha1_search.search(args) or sha256_search.search(args):
         ei.ask_hash(args, itype='hash')

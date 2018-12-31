@@ -35,15 +35,19 @@ class EasyIntell:
             sys.exit(0)
         self.apis = json.loads(json_data)
         self.teletoken = self.apis["telegram"]
-        self.result = {"virustotal":"",
-                       "shodan":"",
-                       "xfe":""}
+        self.result = {
+                        "virustotal":{},
+                        "shodan":{},
+                        "xfe":{},
+                        "ipqs":{}
+                        }
 
 
     def ask_ip(self, query, itype, option=False):
         self.vt_get_report(query, itype)
         self.shodan_ip(query, option)
         self.xfe_get_report(query, itype)
+        self.ipqs_get_report(query)
 
 
     def ask_hash(self, query, itype, option=False):
@@ -136,12 +140,17 @@ class EasyIntell:
 
             # Print general info
             if full is False:
-                self.result['shodan'] = "IP: {}\nOrganization: {}\nOperating System: {}\n".format(host['ip_str'], host.get('org', 'n/a'), host.get('os', 'n/a')).strip()
+                #self.result['shodan'] = "IP: {}\nOrganization: {}\nOperating System: {}\n".format(host['ip_str'], host.get('org', 'n/a'), host.get('os', 'n/a')).strip()
+                self.result['shodan'] = {"IP":host["ip_str"],
+                                         "ORG":host.get('org', 'n/a'),
+                                         "OS":host.get('os', 'n/a')}
                 print("IP: {}\nOrganization: {}\nOperating System: {}\n".format(host['ip_str'], host.get('org', 'n/a'), host.get('os', 'n/a')))
 
                 # Print all banners
+                self.result["shodan"].update({"DATA":[]})
                 for item in host['data']:
-                    self.result['shodan'] += "Port: {}\nBanner: {}".format(item['port'], item['data']).strip()
+                    #self.result['shodan'] += "Port: {}\nBanner: {}".format(item['port'], item['data']).strip()
+                    self.result["shodan"]["DATA"] += [{"PORT":item["port"], "BANNER":item["data"]}]
                     print("Port: {}\nBanner: {}".format(item['port'], item['data']))
             else:
                 pprint(host)
@@ -189,7 +198,17 @@ class EasyIntell:
 
         except Exception as e:
             print("Error: {}".format(e))
-            self.result["xfe"] = None
+            self.result["xfe"].update({"Error":e})
+            pass
+
+    def ipqs_get_report(self, query):
+        try:
+            url = self.apis["ipqs"]["url"].format(self.apis["ipqs"]["key"],query)
+            self.result["ipqs"] = requests.get(url).json()
+
+        except Exception as e:
+            print("Error: {}".format(e))
+            self.result["ipqs"].update({"Error":e})
             pass
 
 
