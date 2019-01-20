@@ -68,23 +68,28 @@ def message_cleaner(bot, update, args):
         elif args is not None and type(args) is dict:
             messages = pprint.pformat(args, indent=4)
             for arg in args:
-                message = pprint.pformat(args[arg], indent=4)
-                bot.send_message(chat_id=update.message.chat_id, text="- {}: ".format(arg))
-                if type(args[arg]) is list:
-                    for i in args[arg][:MAXLEN]:
-                        bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(i, indent=4))
-                #elif type(args[arg]) is dict:
-                #    for i in sorted(args[arg].items())[:MAXLEN]:
-                #        bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(i, indent=4))
-                else:
-                    bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(args[arg], indent=4))
+                try:
+                    message = pprint.pformat(args[arg], indent=4)
+                    bot.send_message(chat_id=update.message.chat_id, text="- {}: ".format(arg))
+                    if type(args[arg]) is list:
+                        for i in args[arg][:MAXLEN]:
+                            bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(i, indent=4))
+                    #elif type(args[arg]) is dict:
+                    #    for i in sorted(args[arg].items())[:MAXLEN]:
+                    #        bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(i, indent=4))
+                    else:
+                        bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(args[arg], indent=4))
+                    sleep(0.5)
+                except Exception as e:
+                    bot.send_message(chat_id=update.message.chat_id, text="[Error] from message cleaner inside with {}".format(e))
+                    pass
         elif args is not None and type(args) is str:
             bot.send_message(chat_id=update.message.chat_id, text=args)
         else:
             bot.send_message(chat_id=update.message.chat_id, text='Return value is none')
 
     except Exception as e:
-        bot.send_message(chat_id=update.message.chat_id, text="[Error] {}".format(e))
+        bot.send_message(chat_id=update.message.chat_id, text="[Error] from message cleaner with {}".format(e))
         pass
 
 def scan(bot, update, args):
