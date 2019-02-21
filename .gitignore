@@ -1,5 +1,7 @@
 *.json
 *.pyd
+*.pyc
+*.sh
 __pycache__
 VxAPI
 samples.db
