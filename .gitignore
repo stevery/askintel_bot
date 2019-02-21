@@ -1,3 +1,6 @@
 *.json
 *.pyd
 __pycache__
+VxAPI
+samples.db
+test

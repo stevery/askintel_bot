@@ -5,14 +5,18 @@ import platform as pf
 import logging
 import pprint
 import math
+import hashlib
 from time import sleep
 from datetime import datetime
+
+import telegram
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 
-import easyntelligence
-import pnmap
+import lib.easyintelligence as easyintelligence
+import lib.pnmap as pnmap
+import lib.file_processor as fp
 
 mypf = pf.platform()
 dir_path = os.path.dirname(os.path.abspath(__file__))
@@ -30,8 +34,10 @@ lib_path = seperator.join(dir_path.split(seperator)[:-3])
 sys.path.append(lib_path)
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-ei = easyntelligence.EasyIntell()
+
+ei = easyintelligence.EasyIntell()
 MAXLEN = 10
 
 
@@ -79,7 +85,8 @@ def message_cleaner(bot, update, args):
                     #        bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(i, indent=4))
                     else:
                         bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(args[arg], indent=4))
-                    sleep(0.5)
+                    sleep(1)
+                    
                 except Exception as e:
                     bot.send_message(chat_id=update.message.chat_id, text="[Error] from message cleaner inside with {}".format(e))
                     pass
@@ -91,6 +98,7 @@ def message_cleaner(bot, update, args):
     except Exception as e:
         bot.send_message(chat_id=update.message.chat_id, text="[Error] from message cleaner with {}".format(e))
         pass
+
 
 def scan(bot, update, args):
     if len(args) != 2:
@@ -161,6 +169,35 @@ def asks(bot, update, args):
         bot.send_message(chat_id=update.message.chat_id, text=result)
 
 
+def file_catcher(bot, update):
+    doc = update.message.document
+    file_id = telegram.File(doc.file_id)["file_id"]
+    file_name = telegram.File(doc.file_name)["file_id"]
+    tmp_path = "tmp{}{}".format(seperator,file_name)
+
+    newFile = bot.getFile(file_id)
+    newFile.download(tmp_path)
+    file_md5 = hashlib.md5(fp.file_as_bytes(open("tmp{}{}".format(seperator,file_name), 'rb'))).hexdigest()
+    bot.send_message(chat_id=update.message.chat_id, text="You uploaded {}, md5({}), telegram_message_id({})".format(file_name, file_md5, update.message.message_id))
+    fpfp= fp.FileProcessor()
+    fpfp.file_checker(tmp_path)
+    if fpfp.counter != 0:
+        bot.send_message(chat_id=update.message.chat_id, text="You already submtted this sample")
+    # virustotal info
+    bot.send_message(chat_id=update.message.chat_id, text="virustotal link {}".format(fpfp.vt_url))
+    
+    # hybrid analysis info
+    bot.send_message(chat_id=update.message.chat_id, text="hybrid-analysis link {}".format(fpfp.hybrid_url))
+
+
+
+
+def error(bot, update, error):
+    """Log Errors caused by Updates."""
+    logger.warning('Update "%s" caused error "%s"', update, error)
+    bot.send_message(chat_id=update.message.chat_id, text=logger.warning('Update "%s" caused error "%s"', update, error))
+
+
 def main():
     updater = Updater(token=ei.teletoken.strip())
     dispatcher = updater.dispatcher
@@ -177,6 +214,10 @@ def main():
     echo_handler = MessageHandler(Filters.text, echo)
     dispatcher.add_handler(echo_handler)
 
+    # file processor
+    file_handler = MessageHandler(Filters.document, file_catcher)
+    dispatcher.add_handler(file_handler)
+
     # command for ask
     ask_handler = CommandHandler('ask', asks, pass_args=True)
     dispatcher.add_handler(ask_handler)
@@ -184,6 +225,9 @@ def main():
     # command for network scan
     scan_handler = CommandHandler('scan', scan, pass_args=True)
     dispatcher.add_handler(scan_handler)
+
+    # log all errors
+    dispatcher.add_error_handler(error)
 
     # start bot
     updater.start_polling()
