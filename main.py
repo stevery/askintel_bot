@@ -9,6 +9,8 @@ import hashlib
 from time import sleep
 from datetime import datetime
 
+import soldier
+
 import telegram
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
@@ -198,7 +200,12 @@ def error(bot, update, error):
     bot.send_message(chat_id=update.message.chat_id, text=logger.warning('Update "%s" caused error "%s"', update, error))
 
 
+def init_folders():
+    soldier.run("mkdir samples")
+    soldier.run("mkdir tmp")
+
 def main():
+    init_folders()
     updater = Updater(token=ei.teletoken.strip())
     dispatcher = updater.dispatcher
 
