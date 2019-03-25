@@ -87,7 +87,7 @@ def message_cleaner(bot, update, args):
                     #        bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(i, indent=4))
                     else:
                         bot.send_message(chat_id=update.message.chat_id, text=pprint.pformat(args[arg], indent=4))
-                    sleep(1)
+                    sleep(2)
                     
                 except Exception as e:
                     bot.send_message(chat_id=update.message.chat_id, text="[Error] from message cleaner inside with {}".format(e))
@@ -134,15 +134,19 @@ def asks(bot, update, args):
         bot.send_message(chat_id=update.message.chat_id, text="You asked for ip address: {}".format(args))
         bot.send_message(chat_id=update.message.chat_id, text="https://www.virustotal.com/#/ip-address/{}".format(args))
         message_cleaner(bot, update, ei.result['virustotal'])
+        sleep(2)
 
         bot.send_message(chat_id=update.message.chat_id, text='https://www.shodan.io/search?query={}'.format(args))
         message_cleaner(bot, update, ei.result['shodan'])
+        sleep(2)
 
         bot.send_message(chat_id=update.message.chat_id, text='https://exchange.xforce.ibmcloud.com/ip/{}'.format(args))
         message_cleaner(bot, update, ei.result['xfe'])
+        sleep(2)
 
         bot.send_message(chat_id=update.message.chat_id, text='https://www.ipqualityscore.com/free-ip-lookup-proxy-vpn-test/lookup/{}'.format(args))
         message_cleaner(bot, update, ei.result['ipqs'])
+        sleep(2)
 
 
     elif md5_search.search(args) or sha1_search.search(args) or sha256_search.search(args):
